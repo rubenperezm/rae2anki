@@ -115,16 +115,13 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
 
         context_abbrs, word_abbrs = self.get_abbrs(elm)
 
-        meaning = [context_abbrs] if context_abbrs else []
-
         if link := scrapy.Selector(text=elm).xpath('.//a').get(): # Reference to another meaning
-            meaning.append(scrapy.Selector(text=link).css('::attr(href)').get().lstrip('/?id='))
-            
+            meaning = scrapy.Selector(text=link).css('::attr(href)').get().lstrip('/?id=')
             return word_abbrs, meaning
-        
-        meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class])]').extract())
-
-        return word_abbrs, self.fix_meaning_format(meaning)
+        else:
+            meaning = [context_abbrs] if context_abbrs else []
+            meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class])]').extract())
+            return word_abbrs, self.fix_meaning_format(meaning)
     
     def get_abbrs(self, element):
         '''
