@@ -120,7 +120,8 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
             return word_abbrs, meaning
         else:
             meaning = [context_abbrs] if context_abbrs else []
-            meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class])]').extract())
+            # TODO: añadir también el texto de class u (ver altramuz)
+            meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class]) or ancestor::*[@class="u"]]').extract())
             return word_abbrs, self.fix_meaning_format(meaning)
     
     def get_abbrs(self, element):
@@ -178,4 +179,3 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         Filter the synoynms that are not valid in Pasapalabra.
         '''
         return clean_words(synonyms)
-    
