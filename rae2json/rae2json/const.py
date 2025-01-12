@@ -140,14 +140,16 @@ USER_AGENT_LIST = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0",
 ]
 
-MARKS = [
-"Acús.", "adv.", "Aer.", "Agr.", "Alq.", "Anat.", "Antrop.", "Arq.", "Arqueol.", "Astrol.",
-"Astron.", "Biol.", "Bioquím.", "Bot.", "Carp.", "Cineg.", "Cinem.", "coloq.", "Com.", "conj.",
-"Constr.", "Dep.", "Der.", "Ecd.", "Ecol.", "Econ.", "Electr.", "Equit.", "Esc.",
-"Esgr.", "Estad.", "expr.", "f.", "f. pl.", "Fil.", "Fís.", "Fisiol.", "Fon.", "Fórm.",
-"Fotogr.", "Geogr.", "Geol.", "Geom.", "Gram.", "Heráld.", "Impr.", "Inform.", "Ingen.",
-"interj.", "Ling.", "Mar.", "Mat.", "Mec.", "Med.", "Meteor.", "Métr.", "Mil.", "Mit.",
-"Mús.", "Numism.", "onomat.", "Ópt.", "Ortogr.", "Parapsicol.", "Pint.", "pl.", "poét.",
-"prnl.", "pron." "Psicol.", "Psiquiatr.", "Quím.", "Rel.", "Ret.", "Símb", "Sociol.", "Taurom.",
-"Tecnol.", "Telec.", "T. lit.", "Topogr.", "Transp.", "TV", "U.", "Urb.", "Veter.", "Zool."
+CONTEXT_MARKS = [
+"Acús.", "adv.", "Aer.", "Agr.", "Alq.", "Anat.", "Antrop.", "Arq.", "Arqueol.",
+"Astrol.", "Astron.", "Biol.", "Bioquím.", "Bot.", "Carp.", "Cineg.", "Cinem.", 
+"Com.", "conj.", "Constr.", "Dep.", "Der.", "Ecd.", "Ecol.", "Econ.", "Electr.",
+"Equit.", "Esc.", "Esgr.", "Estad.", "expr.", "Fil.", "Fís.", "Fisiol.", "Fon.",
+"Fórm.", "Fotogr.", "Geogr.", "Geol.", "Geom.", "Gram.", "Heráld.", "Impr.", "Inform.",
+"Ingen.", "interj.", "Ling.", "Mar.", "Mat.", "Mec.", "Med.", "Meteor.", "Métr.", "Mil.",
+"Mit.", "Mús.", "Numism.", "onomat.", "Ópt.", "Ortogr.", "Parapsicol.", "Pint.", "poét.",
+"pron.", "Psicol.", "Psiquiatr.", "Quím.", "Rel.", "Ret.", "Símb", "Sociol.", "Taurom.",
+"Tecnol.","Telec.", "T. lit.", "Topogr.", "Transp.", "TV", "U.", "Urb.", "Veter.", "Zool."
 ]
+
+WORD_MARKS = ["coloq.", "f.", "f. pl.", "pl.", "prnl."]

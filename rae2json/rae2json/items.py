@@ -9,7 +9,7 @@ import scrapy
 class Rae2JsonItem(scrapy.Item):
     title = scrapy.Field()
     abbrs = scrapy.Field(serializer=list)
-    definition = scrapy.Field()
+    meaning = scrapy.Field()
     #deftype = scrapy.Field()
     synonyms = scrapy.Field(serializer=list)
 
@@ -17,7 +17,7 @@ class Rae2JsonItem(scrapy.Item):
         return {
             "title": self["title"],
             "abbrs": self["abbrs"],
-            "definition": self["definition"],
+            "meaning": self["meaning"],
             #"deftype": self["deftype"],
             "synonyms": self["synonyms"]
         }
