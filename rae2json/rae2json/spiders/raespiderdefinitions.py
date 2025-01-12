@@ -74,9 +74,11 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
             def_items[definition_id] = self.extract_item_information(title, definition).to_dict()
 
     def extract_item_information(self, word, element):
-        definition = self.get_text_or_references(element)
+        abbrs, definition = self.get_text_or_references(element)
         synonyms = self.get_synonyms(element)
-        return R2J(title=word, definition=definition, synonyms=self.filter_synonyms(synonyms)
+        return R2J(title=word, definition=definition,
+                   synonyms=self.filter_synonyms(synonyms),
+                   abbrs=abbrs,
                 #deftype="Loc" if is_locution else "Word"
                 )
 
@@ -91,18 +93,37 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         elm = scrapy.Selector(text=element).xpath('.//div[@class="c-definitions__item"]/div[1]').get()
         link = scrapy.Selector(text=elm).xpath('.//a').get()
 
-        meaning = self.filter_abbr(scrapy.Selector(text=elm).css("abbr::text").extract())
-
-        if meaning: 
-            meaning.append(" ")
-            
+        abbrs = self.filter_abbr(scrapy.Selector(text=elm).css("abbr::text").extract())
         if link:
-            meaning.append(scrapy.Selector(text=link).css('::attr(href)').get().lstrip('/?id='))
-        else:
-            meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class])]').extract())
+            meaning = scrapy.Selector(text=link).css('::attr(href)').get().lstrip('/?id=')
 
-        return "".join(meaning).replace('  ', ' ').strip()
+            if len(scrapy.Selector(text=link).css('::attr(href)').extract()) > 1:
+                raise ValueError("More than one reference found")
+            
+            return abbrs, meaning
+        
+        meaning = scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class])]').extract()
+
+        return abbrs, self.fix_meaning_format(meaning)
     
+    def fix_meaning_format(self, meaning):
+        '''
+        Fix the format of the meaning. Specifically, it fixes the problems
+        caused by removing "etc." from the meanings, and strips the meaning.
+        '''
+        fixed_meaning = [meaning[0]]
+
+        for i in range(1, len(meaning)):
+            if meaning[i] == " " and meaning[i-1] == ", ": # ", etc.: "
+                fixed_meaning[-1] += ":"
+            else:
+                fixed_meaning.append(meaning[i])
+
+        if fixed_meaning[-1] == ", ": # ", etc." at the end of the meaning
+            fixed_meaning[-1] = "."
+
+        return "".join(fixed_meaning).strip()
+        
     def get_synonyms(self, element):
         synonym_div = scrapy.Selector(text=element).xpath('//div[@class="c-word-list"][.//abbr[@title="Sinónimos o afines"]]')
         synonyms = synonym_div.xpath('.//span[@class="sin"]/text()').extract()
