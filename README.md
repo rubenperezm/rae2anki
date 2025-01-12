@@ -42,7 +42,7 @@
 1. Run the Scrapy spider to download definitions from the RAE:
 
     ```sh
-    scrapy crawl raespiderdefinitions -s OUTPUT_FILE=output/words.json
+    scrapy crawl raespiderdefinitions -a INPUT_FILE=path/to/input.txt -s OUTPUT_FILE=path/to/output.json
     ```
 
     Note that the file and the path should exist before running the spider.
