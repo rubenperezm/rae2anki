@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from urllib.parse import unquote
 
 from ..items import Rae2JsonItem as R2J
-from ..utils.words_utils import clean_words, read_words
+from ..utils.words_utils import clean_words, read_words, is_valid_word
 from ..const import (
     USER_AGENT_LIST, 
     CLASS_NAME_WORD_MEANINGS, 
@@ -36,7 +36,7 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         current_word = self.get_current_word_from_url(response)
 
         # get all definitions from the page
-        word_ids = response.xpath('.//article').css('::attr(id)').extract()
+        word_ids = response.css('article::attr(id)').extract()
         definitions = response.xpath('.//section[@class="c-section" and not(@id)]').extract()
 
         for definition, word_id in zip(definitions, word_ids): 
@@ -53,29 +53,34 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         '''
         Get the information of a definition.
         '''
-        definition_entries = scrapy.Selector(text=definition).xpath('.//ol[@class="c-definitions"]').extract()
+
+        definition_entries = scrapy.Selector(text=definition) \
+            .xpath('.//ol[@class="c-definitions"] | .//h3[preceding-sibling::*[1][self::h3[@id]]]').extract()
 
         # Words without definitions, but appear within locutions in other entries 
         if len(definition_entries) == 0:
-            return self.get_redirections(definition)
+            return self.get_redirections(word, definition)
 
         def_items = {}
-
-        # First definition entry are the meanings of the word, the rest are locutions
-
-        # Get meanings
-        self.get_meanings(word, definition_entries[0], def_items)
 
         # Get locutions
         locutions = scrapy.Selector(text=definition).xpath('.//h3[@id]').extract()
 
-        for i in range(1, len(definition_entries)):
-            locution = "".join(scrapy.Selector(text=locutions[i-1]).xpath('.//text()').extract())
-            self.get_meanings(locution, definition_entries[i], def_items, is_locution=True)
+        # Get meanings
+        
+        shift = 0
+        if len(definition_entries) == len(locutions) + 1:
+            self.get_meanings(word, definition_entries[0], def_items)
+            shift = 1
+            
+        for i in range(len(locutions)):
+            locution = "".join(scrapy.Selector(text=locutions[i]).xpath('.//text()').extract())
+            locution_id = scrapy.Selector(text=locutions[i]).css('::attr(id)').get()
+            self.get_meanings(locution, definition_entries[i+shift], def_items, is_locution=True, locution_id = locution_id)
 
         return def_items
 
-    def get_redirections(self, definition):
+    def get_redirections(self, word, definition):
         '''
         Get the redirections of a word that does not have a definition.
         '''
@@ -85,24 +90,36 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         for i in range(len(redirections)):
             redirections[i] = redirections[i].lstrip('/?id=')
 
-        return redirections
+        return {"title": word, "redirections": redirections}
 
-    def get_meanings(self, title, definitions, def_items, is_locution=False):
+    def get_meanings(self, title, meanings, def_items, is_locution=False, locution_id=None):
         '''
         Get the meaning of a given word or locution.
         '''
         class_name = CLASS_NAME_LOCUTION_MEANINGS if is_locution else CLASS_NAME_WORD_MEANINGS
 
-        for definition in scrapy.Selector(text=definitions).xpath(f'.//li[@class="{class_name}"]').extract():
-            definition_id = scrapy.Selector(text=definition).css('::attr(id)').get()
-            def_items[definition_id] = self.extract_item_information(title, definition).to_dict()
+        if meanings_list := scrapy.Selector(text=meanings).xpath(f'.//li[starts-with(@class, "{class_name}")]').extract():
+            for meaning in meanings_list:
+                meaning_id = scrapy.Selector(text=meaning).css('::attr(id)').get()
+                def_items[meaning_id] = self.extract_item_information(title, meaning).to_dict()
+        elif not locution_id:
+            raise ValueError("No meanings found for word: {}".format(title))
+        else:
+            def_items[locution_id] = R2J(
+                title=title,
+                abbrs="", 
+                meaning=scrapy.Selector(text=meanings).css('::attr(href)').get().lstrip('/?id='),
+                synonyms=[]).to_dict(
+            )
+            
+
 
     def extract_item_information(self, title, definition):
         '''
         Create an object with the information of the word.
         '''
         abbrs, meaning = self.get_abbrs_and_meaning(definition)
-        synonyms = self.get_synonyms(definition)
+        synonyms = self.get_synonyms(definition, title)
 
         return R2J(title=title, abbrs=abbrs, meaning=meaning, synonyms=synonyms)
     
@@ -120,7 +137,6 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
             return word_abbrs, meaning
         else:
             meaning = [context_abbrs] if context_abbrs else []
-            # TODO: añadir también el texto de class u (ver altramuz)
             meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class]) or ancestor::*[@class="u"]]').extract())
             return word_abbrs, self.fix_meaning_format(meaning)
     
@@ -165,17 +181,20 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
 
         return "".join(fixed_meaning).strip()
         
-    def get_synonyms(self, element):
+    def get_synonyms(self, element, word):
         '''
         Get the synonyms of the word from the meaning.
         '''
+        if not is_valid_word(word):
+            return []
+        
         synonym_div = scrapy.Selector(text=element).xpath('//div[@class="c-word-list"][.//abbr[@title="Sinónimos o afines"]]')
         synonyms = synonym_div.xpath('.//span[@class="sin"]/text()').extract()
         
-        return self.filter_synonyms(synonyms)
+        return self.filter_synonyms(synonyms, word)
 
-    def filter_synonyms(self, synonyms):
+    def filter_synonyms(self, synonyms, word):
         '''
         Filter the synoynms that are not valid in Pasapalabra.
         '''
-        return clean_words(synonyms)
+        return clean_words(synonyms, word)
