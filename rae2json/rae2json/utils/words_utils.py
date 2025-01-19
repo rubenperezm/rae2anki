@@ -62,3 +62,11 @@ def starts_with_same_letter(word1, word2):
     (word1[0] in 'ií' and word2[0] in 'ií') or \
     (word1[0] in 'oó' and word2[0] in 'oó') or \
     (word1[0] in 'uú' and word2[0] in 'uú')
+
+def get_letter(letter):
+    if letter == 'Á': return 'A'
+    if letter == 'É': return 'E'
+    if letter == 'Í': return 'I'
+    if letter == 'Ó': return 'O'
+    if letter == 'Ú': return 'U'
+    return letter

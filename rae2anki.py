@@ -16,15 +16,14 @@ if __name__ == "__main__":
 
     parser.add_argument("-i", "--input-file", help="Input file with words and definitions")
     parser.add_argument("-e", "--exceptions-file", help="File with exceptions")
+    parser.add_argument("-o", "--output-file", help="Output file")
 
     input_file = parser.parse_args().input_file
     exceptions_file = parser.parse_args().exceptions_file
+    output_file = parser.parse_args().output_file
 
     definitions = read_definitions(input_file)
-    csv_creator = CSVCreator(definitions)
+    csv_creator = CSVCreator(definitions, output_file)
 
     write_words(csv_creator.exception_words, exceptions_file)
-
-    # for m in CSVCreator.merged_definitions.values():
-    #     print(m)
     
