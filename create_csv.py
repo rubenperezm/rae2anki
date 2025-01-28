@@ -65,8 +65,6 @@ class CSVCreator:
         
         else:
             meaning = self.definitions[word_id][meaning_id]
-
-            self.memo_ref[meaning_id] = None # Avoid infinite loops
             
             if self.is_full_reference(meaning['meaning']):
                 word_reference, meaning_reference = self.get_full_reference(meaning['meaning'])

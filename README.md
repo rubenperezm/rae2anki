@@ -39,16 +39,29 @@
 
 ## Usage
 
-1. Run the Scrapy spider to download definitions from the RAE:
+In order to use `rae2anki`, you need to provide a list of words to search for. You can download the latest version in [ListadosPalabrasRAE](https://github.com/rubenperezm/ListadosPalabrasRAE). It is recommended to create a `data` directory to store all the files there.
 
-    ```sh
-    scrapy crawl raespiderdefinitions -a INPUT_FILE=path/to/input.txt -s OUTPUT_FILE=path/to/output.json
-    ```
+Once you have downloaded the list, you can run the following command:
 
-    Note that the file and the path should exist before running the spider.
+```sh
+python3 rae2anki.py -i INPUT_FILE -e EXCEPTIONS_FILE -o OUTPUT_FILE -d DEFINITIONS_FILE -x
+```
 
-2. Process the definitions and generate Anki flashcards:
+Where:
+- `INPUT_FILE` is the path to the TXT file with list of words to search for. Ignored if `-x` is not present.
+- `EXCEPTIONS_FILE` is the path to the TXT file that will contain the exceptions found while processing the words.
+- `OUTPUT_FILE` is the path to the TXT file that will contain the flashcards in a CSV format.
+- `DEFINITIONS_FILE` is the path to the JSON file that will contain the definitions of the words. If default, it will be `words.json`.
+- `-x` is an optional flag that will enable the extraction of definitions. If you have already extracted the definitions and have the JSON file, you can skip this option.
 
-    ```sh
-    python rae2anki.py
-    ```
+### Example
+
+Full process:
+```sh
+python3 rae2anki.py -i 23-8.txt -e exceptions.txt -o flashcards.csv -x
+```
+
+If you have already extracted the definitions:
+```sh
+python3 rae2anki.py -d words.json -e exceptions.txt -o flashcards.csv -d words.json
+```
