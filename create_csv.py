@@ -56,7 +56,7 @@ class CSVCreator:
 
         return answer, tags
 
-    def upsert_meaning(self, word_id, meaning_id, synonym=None):
+    def upsert_meaning(self, word_id, meaning_id, synonym=None, syn_abbrs=None):
         if meaning_id not in self.definitions[word_id]:
             return None
         
@@ -69,12 +69,12 @@ class CSVCreator:
             if self.is_full_reference(meaning['meaning']):
                 word_reference, meaning_reference = self.get_full_reference(meaning['meaning'])
                 final_ref = self.upsert_meaning(
-                    word_reference, meaning_reference, meaning['title'])
+                    word_reference, meaning_reference, meaning['title'], meaning['abbrs'])
 
             elif self.is_partial_reference(meaning['meaning']):
                 meaning_reference = self.get_partial_reference(meaning['meaning'])
                 final_ref = self.upsert_meaning(
-                    word_id, meaning_reference, meaning['title'])
+                    word_id, meaning_reference, meaning['title'], meaning['abbrs'])
                 
             else:
                 self.merged_definitions[meaning_id] = self.parse_meaning(meaning)
@@ -82,13 +82,13 @@ class CSVCreator:
 
             self.memo_ref[meaning_id] = final_ref
 
-        self._update_collections(final_ref, synonym)
+        self._update_collections(final_ref, synonym, self.parse_abbrs(syn_abbrs))
         
         return final_ref
 
-    def _update_collections(self, final_ref, synonym):
+    def _update_collections(self, final_ref, synonym, syn_abbrs):
         if final_ref is not None:
-            self.add_if_valid(self.merged_definitions[final_ref]['answers'], synonym)
+            self.add_if_valid(self.merged_definitions[final_ref]['answers'], synonym, syn_abbrs)
         else:
             self.add_if_valid(self.exception_words, synonym)
         
@@ -98,12 +98,12 @@ class CSVCreator:
             'answers': set(meaning['synonyms']),
         }
 
-        self.add_if_valid(parsed_meaning['answers'], meaning['title'])
+        self.add_if_valid(parsed_meaning['answers'], meaning['title'], self.parse_abbrs(meaning['abbrs']))
         return parsed_meaning
     
-    def add_if_valid(self, collection, element):
+    def add_if_valid(self, collection, element, suffix=None):
         if element and is_valid_word(element):
-            collection.add(element)
+            collection.add(element + suffix if suffix else element)
 
     def is_full_reference(self, meaning):
         return len(meaning) == 15 and meaning[7] == '#'
@@ -130,3 +130,6 @@ class CSVCreator:
 
             for question, (answer, tags) in self.merged_definitions.items():
                 writer.writerow([question, answer, tags])
+
+    def parse_abbrs(self, abbrs):
+        return f" ({abbrs})" if abbrs else ""
