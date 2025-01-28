@@ -1,5 +1,4 @@
 import scrapy
-import json 
 import random
 from urllib.parse import urlparse
 from urllib.parse import unquote
@@ -137,7 +136,7 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
             return word_abbrs, meaning
         else:
             meaning = [context_abbrs] if context_abbrs else []
-            meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class]) or ancestor::*[@class="u" or @class="a"]]').extract())
+            meaning.extend(scrapy.Selector(text=elm).xpath('.//text()[not(ancestor::*[@class]) or ancestor::*[@class="u" or @class="a"] or ancestor::abbr[preceding::span[@data-id]]]').extract())
             return word_abbrs, self.fix_meaning_format(meaning)
     
     def get_abbrs(self, element):
@@ -169,15 +168,8 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         fixed_meaning = [meaning[0]]
 
         for i in range(1, len(meaning)):
-            if meaning[i] == " " and meaning[i-1] == " ":
-                continue
-            elif meaning[i] == " " and meaning[i-1] == ", ": # ", etc.: "
-                fixed_meaning[-1] += ":"
-            else:
+            if not (meaning[i] == " " and meaning[i-1].endswith(" ")):
                 fixed_meaning.append(meaning[i])
-
-        if fixed_meaning[-1] == ", ": # ", etc." at the end of the meaning
-            fixed_meaning[-1] = "."
 
         return "".join(fixed_meaning).strip()
         
