@@ -63,5 +63,5 @@ python3 rae2anki.py -i 23-8.txt -e exceptions.txt -o flashcards.csv -x
 
 If you have already extracted the definitions:
 ```sh
-python3 rae2anki.py -d words.json -e exceptions.txt -o flashcards.csv -d words.json
+python3 rae2anki.py -d words.json -e exceptions.txt -o flashcards.csv
 ```
