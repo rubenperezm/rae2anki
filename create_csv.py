@@ -125,7 +125,7 @@ class CSVCreator:
         Write questions to a CSV file.
         '''
 
-        with open(self.output_filename, 'w', newline='') as f:
+        with open(self.output_filename, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
 
             for question, (answer, tags) in self.merged_definitions.items():

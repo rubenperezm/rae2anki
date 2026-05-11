@@ -10,14 +10,14 @@ def read_words(txt_filename):
     Read words from a file. Remove the newline character at the end of each line.
     '''
 
-    with open(txt_filename, 'r') as f:
+    with open(txt_filename, 'r', encoding='utf-8') as f:
         return [line.strip() for line in f]
     
 def read_definitions(json_filename):
     '''
     Read definitions from a file.
     '''
-    with open(json_filename, 'r') as f:
+    with open(json_filename, 'r', encoding='utf-8') as f:
         return json.load(f)
     
 def write_words(words, filename):
@@ -25,7 +25,7 @@ def write_words(words, filename):
     Write words to a file.
     '''
 
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding='utf-8') as f:
         for word in words:
             f.write(word + '\n')
 

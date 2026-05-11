@@ -22,14 +22,20 @@ if __name__ == "__main__":
     extract_words = args.extract_words
     definitions_file = args.definitions_file
 
+    returncode = 0
+
     if extract_words:
         command = ["scrapy", "crawl", "raespiderdefinitions", 
                    "-s", f"OUTPUT_FILE={os.path.abspath(definitions_file)}",
                    "-a", f"INPUT_FILE={os.path.abspath(input_file)}",
                    ]
         process = subprocess.Popen(command, text=True, cwd="rae2json")
-        process.wait()
+        returncode = process.wait()
 
+    if returncode != 0:
+        print("Error executing the spider. Please check the logs.")
+        exit(1)
+        
     definitions = read_definitions(definitions_file)
     csv_creator = CSVCreator(definitions, output_file)
 
