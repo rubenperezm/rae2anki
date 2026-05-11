@@ -103,13 +103,16 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
                 def_items[meaning_id] = self.extract_item_information(title, meaning).to_dict()
         elif not locution_id:
             raise ValueError("No meanings found for word: {}".format(title))
+        elif meaning := scrapy.Selector(text=meanings).css('::attr(href)').get():
+                def_items[locution_id] = R2J(
+                    title=title,
+                    abbrs="", 
+                    meaning=meaning.lstrip('/?id='),
+                    synonyms=[]).to_dict(
+                )
         else:
-            def_items[locution_id] = R2J(
-                title=title,
-                abbrs="", 
-                meaning=scrapy.Selector(text=meanings).css('::attr(href)').get().lstrip('/?id='),
-                synonyms=[]).to_dict(
-            )
+            print(f"No meanings found for locution '{title}' (id {locution_id})")
+
             
 
 
