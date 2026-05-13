@@ -27,7 +27,7 @@ class RaespiderdefinitionsSpider(scrapy.Spider):
         
         self.start_urls = ["https://dle.rae.es/{}".format(word) for word in all_words]
    
-    def start_requests(self):
+    async def start(self):
         for url in self.start_urls:
             yield scrapy.Request(url, headers={'User-Agent': random.choice(self.USER_AGENT_LIST)})
     
